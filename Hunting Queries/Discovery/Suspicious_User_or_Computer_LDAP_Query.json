@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/db657cb1-0c5e-40d2-9888-f130eafe92de')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/db657cb1-0c5e-40d2-9888-f130eafe92de')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Suspicious User or Computer LDAP Query",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Suspicious User or Computer LDAP Query\nDeviceEvents\n| where ActionType == \"LdapSearch\"\n| extend LDAP = parse_json(AdditionalFields)\n| extend SearchFilter = LDAP.SearchFilter\n| where SearchFilter has \"samAccountType=805306368\" // LDAP filter to discover all the user accounts\n    or SearchFilter has \"samAccountType=805306369\" // LDAP filter to discover all the machine accounts\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Discovery",
+                    "LateralMovement"
+                ],
+                "techniques": [
+                    "T1087"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "Time": "TimeGenerated",
+                    "LDAP": "LDAP"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessAccountUpn"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

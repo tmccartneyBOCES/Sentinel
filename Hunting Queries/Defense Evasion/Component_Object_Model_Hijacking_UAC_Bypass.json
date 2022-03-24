@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/ea2d1e87-afb9-4472-8fff-e67309626561')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/ea2d1e87-afb9-4472-8fff-e67309626561')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Component Object Model Hijacking UAC Bypass",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Component Object Model Hijacking UAC Bypass\nDeviceRegistryEvents\n| where RegistryKey contains \"ShellFolder\"  and ActionType == \"RegistryValueSet\" and RegistryValueName =~ \"Attributes\" \n//toint automatically converts base10 and base16 strings to int toint(\"0xFF\") == toint(\"255\") == int(0xFF) ==  int(255)\n//here we need to use long type as int in KQL is a 32-bit signed integer\n// We're using >= to make sure that if someone adds an additional flag to this field, it doesn't bypass this hunt.\n// removing any flag will bypass this hunt, but more research is needed to understand which of the flag values are relevant\n| where tolong(RegistryValueData) >= long(0xf090013d) \n",
+                "queryFrequency": "PT4H",
+                "queryPeriod": "PT6H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "DefenseEvasion"
+                ],
+                "techniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

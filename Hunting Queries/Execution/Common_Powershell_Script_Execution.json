@@ -1,0 +1,91 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/dab63731-59ae-4637-ac4f-c2fbbe88c6e7')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/dab63731-59ae-4637-ac4f-c2fbbe88c6e7')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Common Powershell Script Execution",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Common Powershell Script Execution \nDeviceProcessEvents\n| where InitiatingProcessCommandLine contains \"-ExecutionPolicy Bypass\" or InitiatingProcessCommandLine contains \"-WindowStyle Hidden\"\n// whitelist\n| where InitiatingProcessParentFileName <> \"AgentExecutor.exe\" // Intune Agent\n| where InitiatingProcessParentFileName <> \"SenseIR.exe\" // Defender Process\n| where InitiatingProcessCommandLine !contains \"Windows Defender Advanced Threat Protection\" // Unicast Scanner Defender\n| where InitiatingProcessCommandLine <> @\"powershell.exe -ExecutionPolicy ByPass C:\\PCBP\\wir_rdr_vmtools.ps1\"\n| where InitiatingProcessCommandLine <> @\" -ExecutionPolicy ByPass -File \\\\nbw.tld\\SYSVOL\\NBW.tld\\scripts\\TeamFirewallScript.ps1 \"\n| where InitiatingProcessCommandLine !contains \"WACScheduledTaskScript.ps1\" // admin center process whitelist\n| distinct InitiatingProcessCommandLine, DeviceName, AccountName, InitiatingProcessParentFileName",
+                "queryFrequency": "PT3H",
+                "queryPeriod": "PT4H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Execution"
+                ],
+                "techniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessParentFileName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

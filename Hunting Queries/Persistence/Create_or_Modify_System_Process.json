@@ -1,0 +1,84 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/f490ee22-6003-469b-bb61-afa13c1d59bf')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/f490ee22-6003-469b-bb61-afa13c1d59bf')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Create or Modify System Process",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Create or Modify System Process\nlet netevents=DeviceNetworkEvents \n| where ActionType == \"InboundConnectionAccepted\"\n| where InitiatingProcessFolderPath == @\"c:\\windows\\system32\\services.exe\"\n// IMPORTANT There is some legitimate use for maintenance by support teams, filter their IP addresses/blocks below\n| where not(RemoteIP has_any (\"170.24.103.122\",\"maintenance-ip-2\",\"maintenance-ip-3\"))\n| project Timestamp,DeviceId,ActionType,InitiatingProcessFolderPath, DeviceName, RemoteIP, InitiatingProcessId;\nlet regevents=DeviceRegistryEvents \n| where RegistryKey contains @\"\\System\\CurrentControlSet\\Services\" or RegistryKey contains @\"\\System\\ControlSet001\\Services\"\n| where ActionType contains \"Created\"\n|project DeviceId, ActionType, RegistryKey, RegistryValueType,RegistryValueData, InitiatingProcessFolderPath,InitiatingProcessId, DeviceName;\nlet rpcservices = \n\tnetevents\n\t| join kind=leftouter  (regevents) on DeviceId, InitiatingProcessFolderPath,InitiatingProcessId;\nrpcservices\n| project Timestamp,DeviceName,RemoteIP,ActionType1 ,RegistryKey, RegistryValueType, RegistryValueData\n\n",
+                "queryFrequency": "PT3H",
+                "queryPeriod": "PT4H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Persistence"
+                ],
+                "techniques": [
+                    "T1543"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "RemoteIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "RegistryKey",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Key",
+                                "columnName": "RegistryKey"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/16dcca28-bf88-4c17-9b2e-ad39e230a388')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/16dcca28-bf88-4c17-9b2e-ad39e230a388')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Remote Desktop Protocol - SharpRDP",
+                "description": "This detection monitors for the behavior that SharpRDP exhibits on the target system. The most relevant is leveraging taskmgr.exe to gain elevated execution, which means that taskmgr.exe is creating unexpected child processes.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Remote Desktop Protocol - SharpRDP\nlet executions = DeviceProcessEvents\n| where InitiatingProcessFileName contains \"taskmgr\" and AccountName !contains \"_ladm\" // Include your LAPS /RID500 admin naming convention here. \n// Add the below filter to look for stock SharpRDP behavior. However, with minorchanges to the stock version of SharpRDP the filter below can be bypassed.\n//| where not(InitiatingProcessCommandLine has_any (\"/1\",\"/2\",\"/3\",\"/4\"))\n| where not(FolderPath =~ @\"c:\\Windows\\system32\\WerFault.exe\" and ProcessCommandLine contains \"-u -p\")\n| where not(FolderPath =~ @\"c:\\windows\\system32\\mmc.exe\" and ProcessCommandLine contains @\"C:\\WINDOWS\\System32\\services.msc\")\n| where not(FolderPath =~ @\"c:\\windows\\system32\\resmon.exe\");\nexecutions\n| join kind=leftsemi  (DeviceLogonEvents\n| where LogonType in ('Unlock', 'RemoteInteractive') and not (LogonType == 'Unlock' and RemoteIP == '127.0.0.1') and RemoteIP != \"\" and ActionType == \"LogonSuccess\") on DeviceId, LogonId\n",
+                "queryFrequency": "PT3H",
+                "queryPeriod": "PT4H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "LateralMovement",
+                    "PrivilegeEscalation"
+                ],
+                "techniques": [
+                    "T1543",
+                    "T1068"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5M",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessParentFileName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessFileName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

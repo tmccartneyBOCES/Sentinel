@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// Account Added to Local Administrator Group\nDeviceEvents\n| where ActionType == \"UserAccountAddedToLocalGroup\"\n| extend GroupName = tostring(AdditionalFields.GroupName)\n| where GroupName == \"Administrators\"",
+                "query": "// Account Added to Local Administrator Group\nDeviceEvents\n| where ActionType == \"UserAccountAddedToLocalGroup\"\n| extend GroupName = tostring(AdditionalFields.GroupName)\n| where GroupName == \"Administrators\"\n| join DeviceProcessEvents on AccountSid\n",
                 "queryFrequency": "PT2H",
                 "queryPeriod": "PT3H",
                 "triggerOperator": "GreaterThan",
@@ -56,7 +56,7 @@
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "InitiatingProcessAccountName"
+                                "columnName": "AccountName1"
                             }
                         ]
                     },
@@ -66,6 +66,33 @@
                             {
                                 "identifier": "HostName",
                                 "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "FolderPath1"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFolderPath1"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine1"
                             }
                         ]
                     }

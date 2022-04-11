@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/0107c97f-3ae5-4c1e-89d5-92d1c512623a')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/0107c97f-3ae5-4c1e-89d5-92d1c512623a')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Powershell Download",
+                "description": "",
+                "severity": "High",
+                "enabled": true,
+                "query": "// Powershell Download\nDeviceProcessEvents\n| where FileName in~ (\"powershell.exe\",\"powershell_ise.exe\",\"pwsh.exe\")\n| where InitiatingProcessCommandLine has \"Net.WebClient\"\n or InitiatingProcessCommandLine has \"DownloadFile\"\n or InitiatingProcessCommandLine has \"Invoke-WebRequest\"\n or InitiatingProcessCommandLine has \"Invoke-Shellcode\"\n or InitiatingProcessCommandLine contains \"http:\"\n or InitiatingProcessCommandLine contains \"iex\"\n| where InitiatingProcessParentFileName <> \"SenseIR.exe\"\n\n",
+                "queryFrequency": "PT3H",
+                "queryPeriod": "PT4H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Execution"
+                ],
+                "techniques": [
+                    "T0807"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "IntCommandLine": "InitiatingProcessCommandLine",
+                    "CommandLine": "ProcessCommandLine",
+                    "ParentFileName": "InitiatingProcessParentFileName",
+                    "Time": "TimeGenerated"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountUpn"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

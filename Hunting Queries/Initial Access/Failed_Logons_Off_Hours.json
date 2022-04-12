@@ -1,0 +1,93 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/2bd45910-311e-4ff6-a046-21d9e4dca371')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/2bd45910-311e-4ff6-a046-21d9e4dca371')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Failed Logons Off Hours",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Failed Logons Off Hours\nDeviceLogonEvents\n| where ActionType == \"LogonFailed\"\n| extend Hour = hourofday(TimeGenerated -4h) // UTC TIME - 4h to match EDT\n| where Hour < 7 or Hour > 19 // HOURS Between 7 pm to 6 am\n| where AccountName !contains \"adm\"\n| where AccountDomain <> \"samba\"\n| where DeviceName <> \"nas-radius.nasboces.org\"\n| where InitiatingProcessCommandLine <> \"\\\"Microsoft.Tri.Sensor.exe\\\"\"\n| summarize count() by AccountName, DeviceName, RemoteDeviceName, RemoteIP\n| order by count_ desc\n| where count_ > 4",
+                "queryFrequency": "P1D",
+                "queryPeriod": "P1D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "InitialAccess"
+                ],
+                "techniques": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "Count": "count_"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "RemoteIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "RemoteDeviceName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

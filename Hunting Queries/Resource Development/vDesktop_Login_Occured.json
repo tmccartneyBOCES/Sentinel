@@ -1,0 +1,87 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/85503393-ace4-4c19-a7bb-cb501f4c678f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/85503393-ace4-4c19-a7bb-cb501f4c678f')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "vDesktop Login Occured",
+                "description": "",
+                "severity": "Informational",
+                "enabled": true,
+                "query": "// vDesktop Login Occured\r\nSigninLogs\r\n| where ResourceDisplayName contains \"Azure Virtual Desktop\" or ResourceDisplayName contains \"Windows Virtual Desktop AME\"\r\n| where ResultType == \"0\"\r\n| project Identity, IPAddress, TimeGenerated\r\n| join BehaviorAnalytics on $left.IPAddress==$right.SourceIPAddress\r\n| distinct UserName, UserPrincipalName, IPAddress, SourceIPLocation, TimeGenerated",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "ResourceDevelopment"
+                ],
+                "techniques": [
+                    "T1586"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": false,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "SourceIpLocation": "SourceIPLocation",
+                    "TimeGenerated": "TimeGenerated"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "UserName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Mailbox",
+                        "fieldMappings": [
+                            {
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

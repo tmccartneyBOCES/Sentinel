@@ -1,0 +1,76 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/26a46e74-6860-4bd2-a471-cec721e07953')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/26a46e74-6860-4bd2-a471-cec721e07953')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Detect .NET runtime being loaded in JScript for code execution",
+                "description": "This query detects .NET being loaded from wscript or cscript to run .NET code, such as cactustorch and sharpshooter.\nAll based on the DotNetToJScript by James Foreshaw documented here https://github.com/tyranid/DotNetToJScript.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "DeviceImageLoadEvents \n| where FileName in~ (\"mscoree.dll\", \"mscorlib.dll\", \"mscorlib.ni.dll\") \n| where tolower(InitiatingProcessFileName) in (\"wscript.exe\", \"cscript.exe\", \"mshta.exe\")\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Execution"
+                ],
+                "techniques": [
+                    "T1072",
+                    "T0807"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5M",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFileName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

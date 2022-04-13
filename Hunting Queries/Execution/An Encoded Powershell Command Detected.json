@@ -85,6 +85,15 @@
                                 "columnName": "DeviceName"
                             }
                         ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
                     }
                 ]
             }

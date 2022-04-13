@@ -19,8 +19,8 @@
                 "severity": "Medium",
                 "enabled": true,
                 "query": "// Failed Logons Off Hours\nDeviceLogonEvents\n| where ActionType == \"LogonFailed\"\n| extend Hour = hourofday(TimeGenerated -4h) // UTC TIME - 4h to match EDT\n| where Hour < 7 or Hour > 19 // HOURS Between 7 pm to 6 am\n| where AccountName !contains \"adm\"\n| where AccountDomain <> \"samba\"\n| where DeviceName <> \"nas-radius.nasboces.org\"\n| where InitiatingProcessCommandLine <> \"\\\"Microsoft.Tri.Sensor.exe\\\"\"\n| summarize count() by AccountName, DeviceName, RemoteDeviceName, RemoteIP\n| order by count_ desc\n| where count_ > 4",
-                "queryFrequency": "P1D",
-                "queryPeriod": "P1D",
+                "queryFrequency": "P10D",
+                "queryPeriod": "P10D",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
@@ -28,7 +28,9 @@
                 "tactics": [
                     "InitialAccess"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1078"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

@@ -28,7 +28,9 @@
                 "tactics": [
                     "DefenseEvasion"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1562"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

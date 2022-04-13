@@ -8,72 +8,75 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/85503393-ace4-4c19-a7bb-cb501f4c678f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/85503393-ace4-4c19-a7bb-cb501f4c678f')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
+                "displayName": "vDesktop Login Occured",
                 "description": "",
-                "severity": "High",
+                "severity": "Informational",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "// vDesktop Login Occured\r\nSigninLogs\r\n| where ResourceDisplayName contains \"Azure Virtual Desktop\" or ResourceDisplayName contains \"Windows Virtual Desktop AME\"\r\n| where ResultType == \"0\"\r\n| project Identity, IPAddress, TimeGenerated\r\n| join BehaviorAnalytics on $left.IPAddress==$right.SourceIPAddress\r\n| distinct UserName, UserPrincipalName, IPAddress, SourceIPLocation, TimeGenerated",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "DefenseEvasion"
+                    "ResourceDevelopment"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1586"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
-                    "createIncident": true,
+                    "createIncident": false,
                     "groupingConfiguration": {
                         "enabled": false,
                         "reopenClosedIncident": false,
                         "lookbackDuration": "PT5H",
-                        "matchingMethod": "AllEntities",
+                        "matchingMethod": "Selected",
                         "groupByEntities": [],
                         "groupByAlertDetails": [],
                         "groupByCustomDetails": []
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "SingleAlert"
+                    "aggregationKind": "AlertPerResult"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "SourceIpLocation": "SourceIPLocation",
+                    "TimeGenerated": "TimeGenerated"
+                },
                 "entityMappings": [
-                    {
-                        "entityType": "Process",
-                        "fieldMappings": [
-                            {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
-                            }
-                        ]
-                    },
                     {
                         "entityType": "Account",
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "AccountName"
+                                "columnName": "UserName"
                             }
                         ]
                     },
                     {
-                        "entityType": "Host",
+                        "entityType": "IP",
                         "fieldMappings": [
                             {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Mailbox",
+                        "fieldMappings": [
+                            {
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "UserPrincipalName"
                             }
                         ]
                     }

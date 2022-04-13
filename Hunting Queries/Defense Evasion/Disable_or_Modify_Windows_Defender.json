@@ -20,7 +20,7 @@
                 "enabled": true,
                 "query": "// Disable or Modify Windows Defender\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\", \"sc stop WinDefend\", \"sc delete WinDefend\", \"Set-MpPreference -DisableBehaviorMonitoring $true\", \"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\", \"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n// If you have a lot of false positives coming from JetBrains, you can use the line below. \n//| where InitiatingProcessFolderPath !startswith @\"c:\\program files\\jetbrains\\\" and InitiatingProcessVersionInfoProductName !~ (\"Android Studio\")\n\n",
                 "queryFrequency": "PT3H",
-                "queryPeriod": "PT4H30M",
+                "queryPeriod": "PT3H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT1H",
@@ -28,7 +28,9 @@
                 "tactics": [
                     "DefenseEvasion"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1562"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

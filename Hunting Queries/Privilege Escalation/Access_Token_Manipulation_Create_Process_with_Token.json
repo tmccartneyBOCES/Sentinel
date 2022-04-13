@@ -26,10 +26,13 @@
                 "suppressionDuration": "PT1H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "PrivilegeEscalation",
-                    "DefenseEvasion"
+                    "DefenseEvasion",
+                    "PrivilegeEscalation"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1134",
+                    "T1134"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

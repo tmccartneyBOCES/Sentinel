@@ -8,28 +8,28 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/3ab0d5ef-0fb7-488f-bbfe-869d67189b5a')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/3ab0d5ef-0fb7-488f-bbfe-869d67189b5a')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
-                "description": "",
-                "severity": "High",
+                "displayName": "Suspicious Process Injection from Office application",
+                "description": "This query detects process injections using CreateRemoteThread, QueueUserAPC or SetThread context APIs, originating from an Office process (only Word/Excel/PowerPoint)\nthat might contains macros. Performing process injection from a macro is a common technique by attackers to escape out of the Office process into something\nlonger running.",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "DeviceEvents \n| where ActionType in (\"CreateRemoteThreadApiCall\", \"QueueUserApcRemoteApiCall\", \"SetThreadContextRemoteApiCall\")\n| where InitiatingProcessFileName in~ (\"winword.exe\", \"excel.exe\", \"powerpnt.exe\")\n| where InitiatingProcessCommandLine !contains \"/dde\"\n| where not(InitiatingProcessCommandLine has_any (\".docx\", \"dotx\",\".xlsx\", \".xltx\", \".pptx\")) // These files can't contain macros.\n// Enable the line below if the results are too noisy.\n//| where InitiatingProcessCommandLine has_any (\".doc\", \".wbk\", \".docm\", \".dot\", \".dotm\" \".xls\", \".xlsm\", \".xltm\", \".xla\",\".xll\", \".xlam\", \".ppt\", \".pptm\", \".pot\", \".potm\", \".ppsm\", \".sldm\") \n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
-                "suppressionDuration": "PT5H",
+                "suppressionDuration": "PT1H",
                 "suppressionEnabled": false,
                 "tactics": [
                     "DefenseEvasion"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1055"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -37,7 +37,7 @@
                     "groupingConfiguration": {
                         "enabled": false,
                         "reopenClosedIncident": false,
-                        "lookbackDuration": "PT5H",
+                        "lookbackDuration": "PT5M",
                         "matchingMethod": "AllEntities",
                         "groupByEntities": [],
                         "groupByAlertDetails": [],

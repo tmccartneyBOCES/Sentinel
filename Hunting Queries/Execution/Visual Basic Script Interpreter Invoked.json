@@ -8,28 +8,28 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/863fc678-0d0a-4eca-bb0a-a189436b4a2d')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/863fc678-0d0a-4eca-bb0a-a189436b4a2d')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
+                "displayName": "Visual Basic Script Interpreter Invoked ",
                 "description": "",
-                "severity": "High",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "// ZIP VBS File\nDeviceProcessEvents\n| where InitiatingProcessFileName contains \"wscript.exe\"\n| where InitiatingProcessFileName contains \"cscript.exe\"\n| where ProcessCommandLine contains \".vbs\"\n| where InitiatingProcessCommandLine !contains \"Blackboard\"",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "DefenseEvasion"
+                    "Execution"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1059"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -48,23 +48,20 @@
                     "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "Time": "TimeGenerated"
+                },
                 "entityMappings": [
-                    {
-                        "entityType": "Process",
-                        "fieldMappings": [
-                            {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
-                            }
-                        ]
-                    },
                     {
                         "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "FullName",
+                                "identifier": "Name",
                                 "columnName": "AccountName"
+                            },
+                            {
+                                "identifier": "NTDomain",
+                                "columnName": "AccountDomain"
                             }
                         ]
                     },
@@ -74,6 +71,15 @@
                             {
                                 "identifier": "HostName",
                                 "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
                             }
                         ]
                     }

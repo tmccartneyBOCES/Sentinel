@@ -28,7 +28,9 @@
                 "tactics": [
                     "Execution"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1559"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

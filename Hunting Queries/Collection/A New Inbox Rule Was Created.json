@@ -1,0 +1,86 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/7c3d32ec-cdbf-4802-a172-1c3d70c597d5')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/7c3d32ec-cdbf-4802-a172-1c3d70c597d5')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "A New Inbox Rule Was Created",
+                "description": "",
+                "severity": "Low",
+                "enabled": true,
+                "query": "OfficeActivity\n    | where Operation == 'New-InboxRule'\n    | extend details = parse_json(Parameters)\n    | where details contains 'ForwardTo' or details contains 'RedirectTo'\n    | extend ForwardTo = iif(details[0].Name contains 'ForwardTo', details[0].Value,\n        iif(details[1].Name contains 'ForwardTo', details[1].Value, \n            iif(details[2].Name contains 'ForwardTo', details[2].Value,  \n                iif(details[3].Name contains 'ForwardTo', details[3].Value, \n                    iif(details[4].Name contains 'ForwardTo', details[4].Value,\n                        '')))))\n    | extend RedirectTo = iif(details[0].Name contains 'RedirectTo', details[0].Value,\n        iif(details[1].Name contains 'RedirectTo', details[1].Value,\n            iif(details[2].Name contains 'RedirectTo', details[2].Value,\n                iif(details[3].Name contains 'RedirectTo', details[3].Value,\n                    iif(details[4].Name contains 'RedirectTo', details[4].Value,\n                        '')))))\n    | extend RuleName = iif(details[3].Name contains 'Name', details[3].Value,\n         iif(details[4].Name contains 'Name', details[4].Value,\n            iif(details[5].Name contains 'name', details[5].Value,\n                'Check Parameters')))\n    | extend RuleParameters = iif(details[2].Name != 'ForwardTo' and  details[2].Name != 'RedirectTo', \n        strcat(tostring(details[2].Name), '-', tostring(details[2].Value)),\n        iif(details[3].Name != 'ForwardTo' and  details[3].Name != 'RedirectTo' and details[3].Name != 'Name',\n            strcat(tostring(details[3].Name), '-', tostring(details[3].Value)), \n                iff(details[4].Name != 'ForwardTo' and details[4].Name != 'RedirectTo' and details[4].Name != 'Name' and details[4].Name != 'StopProcessingRules',\n                strcat(tostring(details[4].Name), '-', tostring(details[4].Value)),\n                'All Mail')))\n    | project TimeGenerated, Operation, RuleName, RuleParameters, iif(details contains 'ForwardTo', ForwardTo, RedirectTo), ClientIP, UserId, details\n    | project-rename Email_Forwarded_To = Column1, Creating_User = UserId\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Collection"
+                ],
+                "techniques": [
+                    "T1114"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "AlertPerResult"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "RuleName": "RuleName"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "Creating_User"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "ClientIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "Email_Forwarded_To"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

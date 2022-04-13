@@ -28,7 +28,9 @@
                 "tactics": [
                     "LateralMovement"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1021"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,

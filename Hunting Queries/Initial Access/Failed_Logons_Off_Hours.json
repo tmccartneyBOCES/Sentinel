@@ -8,29 +8,27 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/2bd45910-311e-4ff6-a046-21d9e4dca371')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/2bd45910-311e-4ff6-a046-21d9e4dca371')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
+                "displayName": "Failed Logons Off Hours",
                 "description": "",
-                "severity": "High",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "// Failed Logons Off Hours\nDeviceLogonEvents\n| where ActionType == \"LogonFailed\"\n| extend Hour = hourofday(TimeGenerated -4h) // UTC TIME - 4h to match EDT\n| where Hour < 7 or Hour > 19 // HOURS Between 7 pm to 6 am\n| where AccountName !contains \"adm\"\n| where AccountDomain <> \"samba\"\n| where DeviceName <> \"nas-radius.nasboces.org\"\n| where InitiatingProcessCommandLine <> \"\\\"Microsoft.Tri.Sensor.exe\\\"\"\n| summarize count() by AccountName, DeviceName, RemoteDeviceName, RemoteIP\n| order by count_ desc\n| where count_ > 4",
+                "queryFrequency": "P1D",
+                "queryPeriod": "P1D",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "DefenseEvasion"
+                    "InitialAccess"
                 ],
-                "techniques": [
-                    "T1562"
-                ],
+                "techniques": [],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,
@@ -45,17 +43,28 @@
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "SingleAlert"
+                    "aggregationKind": "AlertPerResult"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "Count": "count_"
+                },
                 "entityMappings": [
                     {
-                        "entityType": "Process",
+                        "entityType": "Host",
                         "fieldMappings": [
                             {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "RemoteIP"
                             }
                         ]
                     },
@@ -73,7 +82,7 @@
                         "fieldMappings": [
                             {
                                 "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "columnName": "RemoteDeviceName"
                             }
                         ]
                     }

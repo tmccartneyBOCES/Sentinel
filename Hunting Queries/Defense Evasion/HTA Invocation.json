@@ -8,19 +8,19 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/88fc1f42-d869-4859-8a5b-42af1cc80ca8')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/88fc1f42-d869-4859-8a5b-42af1cc80ca8')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
+                "displayName": "HTA Invocation",
                 "description": "",
-                "severity": "High",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "// HTA Invocation\nDeviceProcessEvents\n| where InitiatingProcessFileName contains \"mshta\"\n| where InitiatingProcessParentFileName <> \"HP Color LaserJet M652 M653.exe\"\n| where InitiatingProcessParentFileName <> \"HP Scan Assistant.exe\"\n| where InitiatingProcessParentFileName <> \"HP ColorLaserJet MFP M282-M285.exe\"",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
@@ -29,7 +29,7 @@
                     "DefenseEvasion"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1218"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -48,14 +48,16 @@
                     "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "Time": "TimeGenerated"
+                },
                 "entityMappings": [
                     {
-                        "entityType": "Process",
+                        "entityType": "Host",
                         "fieldMappings": [
                             {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
                             }
                         ]
                     },
@@ -63,17 +65,8 @@
                         "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "FullName",
-                                "columnName": "AccountName"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Host",
-                        "fieldMappings": [
-                            {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "identifier": "Name",
+                                "columnName": "AccountUpn"
                             }
                         ]
                     }

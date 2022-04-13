@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/9cbe25ac-82c4-45f0-884d-b00a0407742f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/9cbe25ac-82c4-45f0-884d-b00a0407742f')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Component Object Model Hijacking - Vault7 trick",
+                "description": "This detection looks for the very specific value of \"Attribute\" in the \"ShellFolder\" CLSID of a COM object. This value (0xf090013d) seems to only link back to this specific persistence method. \nThe blog post linked here (https://www.ired.team/offensive-security/code-execution/forcing-iexplore.exe-to-load-a-malicious-dll-via-com-abuse) provides more background on the meaning of this value.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "DeviceRegistryEvents\n| where RegistryKey has \"ShellFolder\"  and ActionType =~ \"RegistryValueSet\" and RegistryValueName =~ \"Attributes\" \n// toint automatically converts base10 and base16 strings to int toint(\"0xFF\") == toint(\"255\") == int(0xFF) ==  int(255).\n// We are using >= to make sure that if someone adds an additional flag to this field, it doesn't bypass this hunt.\n// Removing any flag will bypass this hunt, but more research is needed to understand which of the flag values are relevant.\n| where toint(RegistryValueData) >= int(0xf090013d)\n| where RegistryValueData !in (\"1048576\", \"0\")",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Persistence",
+                    "PrivilegeEscalation"
+                ],
+                "techniques": [
+                    "T1546",
+                    "T1546"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5M",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "RegistryKey",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Key",
+                                "columnName": "RegistryKey"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "RegistryKey",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Key",
+                                "columnName": "PreviousRegistryValueData"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "InitiatingProcessAccountName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

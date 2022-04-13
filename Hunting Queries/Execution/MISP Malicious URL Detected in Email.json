@@ -8,28 +8,30 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/77dbfbcb-9c26-4838-8255-5a3f659995ae')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/77dbfbcb-9c26-4838-8255-5a3f659995ae')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
+                "displayName": "MISP Malicious URL Detected in Email",
                 "description": "",
-                "severity": "High",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "// MISP Malicious URL Detected in Email\nThreatIntelligenceIndicator\n| join EmailUrlInfo on Url\n| join kind=inner EmailEvents on NetworkMessageId\n| where DeliveryAction <> \"Blocked\"\n",
+                "queryFrequency": "PT2H",
+                "queryPeriod": "PT3H",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "DefenseEvasion"
+                    "Execution",
+                    "InitialAccess"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1204",
+                    "T1566"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -51,11 +53,20 @@
                 "customDetails": null,
                 "entityMappings": [
                     {
-                        "entityType": "Process",
+                        "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "identifier": "FullName",
+                                "columnName": "RecipientEmailAddress"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "URL",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Url",
+                                "columnName": "Url"
                             }
                         ]
                     },
@@ -64,16 +75,16 @@
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "AccountName"
+                                "columnName": "SenderFromAddress"
                             }
                         ]
                     },
                     {
-                        "entityType": "Host",
+                        "entityType": "IP",
                         "fieldMappings": [
                             {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "identifier": "Address",
+                                "columnName": "SenderIPv4"
                             }
                         ]
                     }

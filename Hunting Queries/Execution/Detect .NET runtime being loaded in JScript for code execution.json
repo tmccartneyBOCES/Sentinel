@@ -8,28 +8,29 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/c908892d-681e-4a8f-ab7f-6459e2de8c66')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/26a46e74-6860-4bd2-a471-cec721e07953')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/26a46e74-6860-4bd2-a471-cec721e07953')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "Defender Defense Evasion Detected",
-                "description": "",
-                "severity": "High",
+                "displayName": "Detect .NET runtime being loaded in JScript for code execution",
+                "description": "This query detects .NET being loaded from wscript or cscript to run .NET code, such as cactustorch and sharpshooter.\nAll based on the DotNetToJScript by James Foreshaw documented here https://github.com/tyranid/DotNetToJScript.",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// Defender Defense Evasion Detected\nlet defendertampering=dynamic([\"Set-MpPreference -DisableRealtimeMonitoring $true\",\"sc stop WinDefend\",\"sc delete WinDefend\",\"Set-MpPreference -DisableBehaviorMonitoring $true\",\"Set-MpPreference -ExclusionProcess\", \"Set-MpPreference -ExclusionExtension dll\",\"net stop security center\"]);\nDeviceProcessEvents\n| where ProcessCommandLine has_any (defendertampering)\n\n",
-                "queryFrequency": "PT4H",
-                "queryPeriod": "PT6H",
+                "query": "DeviceImageLoadEvents \n| where FileName in~ (\"mscoree.dll\", \"mscorlib.dll\", \"mscorlib.ni.dll\") \n| where tolower(InitiatingProcessFileName) in (\"wscript.exe\", \"cscript.exe\", \"mshta.exe\")\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
-                "suppressionDuration": "PT5H",
+                "suppressionDuration": "PT1H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "DefenseEvasion"
+                    "Execution"
                 ],
                 "techniques": [
-                    "T1562"
+                    "T1072",
+                    "T0807"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -37,7 +38,7 @@
                     "groupingConfiguration": {
                         "enabled": false,
                         "reopenClosedIncident": false,
-                        "lookbackDuration": "PT5H",
+                        "lookbackDuration": "PT5M",
                         "matchingMethod": "AllEntities",
                         "groupByEntities": [],
                         "groupByAlertDetails": [],
@@ -55,25 +56,16 @@
                         "fieldMappings": [
                             {
                                 "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "columnName": "InitiatingProcessCommandLine"
                             }
                         ]
                     },
                     {
-                        "entityType": "Account",
+                        "entityType": "File",
                         "fieldMappings": [
                             {
-                                "identifier": "FullName",
-                                "columnName": "AccountName"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Host",
-                        "fieldMappings": [
-                            {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFileName"
                             }
                         ]
                     }

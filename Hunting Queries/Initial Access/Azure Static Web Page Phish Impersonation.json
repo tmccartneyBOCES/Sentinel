@@ -8,17 +8,17 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/863fc678-0d0a-4eca-bb0a-a189436b4a2d')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/863fc678-0d0a-4eca-bb0a-a189436b4a2d')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/f0b954ba-8414-4614-b797-b12aaf22ac65')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/f0b954ba-8414-4614-b797-b12aaf22ac65')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "ZIP VBS File",
+                "displayName": "Azure Static Web Page Phish Impersonation ",
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// ZIP VBS File\nDeviceProcessEvents\n| where InitiatingProcessFileName contains \"wscript.exe\"\n| where ProcessCommandLine contains \".vbs\"\n| where InitiatingProcessCommandLine !contains \"Blackboard\"",
+                "query": "DeviceNetworkEvents\n| where RemoteUrl endswith \"azurestaticapps.net\"",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -26,9 +26,11 @@
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "Execution"
+                    "InitialAccess"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1566"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,
@@ -43,41 +45,26 @@
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "SingleAlert"
+                    "aggregationKind": "AlertPerResult"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": {
-                    "Time": "TimeGenerated"
-                },
+                "customDetails": null,
                 "entityMappings": [
+                    {
+                        "entityType": "URL",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Url",
+                                "columnName": "RemoteUrl"
+                            }
+                        ]
+                    },
                     {
                         "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "Name",
-                                "columnName": "AccountName"
-                            },
-                            {
-                                "identifier": "NTDomain",
-                                "columnName": "AccountDomain"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Host",
-                        "fieldMappings": [
-                            {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Process",
-                        "fieldMappings": [
-                            {
-                                "identifier": "CommandLine",
-                                "columnName": "InitiatingProcessCommandLine"
+                                "identifier": "FullName",
+                                "columnName": "InitiatingProcessAccountUpn"
                             }
                         ]
                     }

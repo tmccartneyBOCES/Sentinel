@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/a63d5c2f-1fb9-4998-bdd1-55244e44bfcc')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/a63d5c2f-1fb9-4998-bdd1-55244e44bfcc')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Brute Force",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "// Brute Force\nSigninLogs\n// 50126 Error validating credentials due to invalid username or password.\n// 50053 The account is locked, you've tried to sign in too many times with an incorrect user ID or password.\n| where ResultType == '50126' or ResultType == '50053'\n| project UserPrincipalName, Location, IPAddress\n| summarize IPs = dcount(IPAddress), Locations = make_set(Location) by UserPrincipalName\n| where IPs > 1 and Locations[1] != ''\n| sort by IPs desc\n",
+                "queryFrequency": "P7D",
+                "queryPeriod": "P14D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "CredentialAccess"
+                ],
+                "techniques": [
+                    "T1110"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "Locations": "Locations",
+                    "IPCount": "IPs"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "AadUserId",
+                                "columnName": "UserPrincipalName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/bae62eff-b9e6-41ec-ad61-e3f80911727c')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/bae62eff-b9e6-41ec-ad61-e3f80911727c')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Match Legitimate Name or Location - 2",
+                "description": "Attackers often match or approximate the name or location of legitimate files to avoid detection rules that are based trust of certain operating system processes.\nThis query detects mismatches in the parent-child relationship of core operating system processes to uncover different masquerading attempts.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let ProcessRelations=datatable(ImageFile:string,ExpectedParent:dynamic) [\n  \"smss.exe\", dynamic([\"smss.exe\", \"ntoskrnl.exe\", \"\"]),\n  \"crmss.exe\", dynamic([\"smss.exe\"]),\n  \"wininit.exe\", dynamic([\"smss.exe\"]),\n  \"winlogon.exe\", dynamic([\"smss.exe\"]),\n  \"services.exe\", dynamic([\"wininit.exe\"]),\n  \"lsaiso.exe\", dynamic([\"wininit.exe\"]),\n  \"lsass.exe\", dynamic([\"wininit.exe\"]),\n  \"spoolsv.exe\", dynamic([\"services.exe\"]),\n  \"dllhost.exe\", dynamic([\"svchost.exe\", \"services.exe\"]),\n  \"lsm.exe\", dynamic([\"wininit.exe\"]),\n  \"svchost.exe\", dynamic([\"services.exe\", \"msmpeng.exe\"]),\n  \"runtimebroker.exe\", dynamic([\"svchost.exe\"]),\n  \"taskhostw.exe\", dynamic([\"svchost.exe\"]),\n  \"userinit.exe\", dynamic([\"winlogon.exe\"])\n  // Explorer can have a lot of parents in some environments\n  //,\"explorer.exe\", dynamic([\"userinit.exe\"])\n];\nDeviceProcessEvents\n| extend ImageFile = tostring(tolower(parse_path(tostring(FolderPath)).Filename))\n| extend ParentFile = tostring(tolower(parse_path(tostring(InitiatingProcessFolderPath)).Filename))\n| lookup kind=inner ProcessRelations on ImageFile\n| where not(set_has_element(ExpectedParent,ParentFile))\n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "DefenseEvasion"
+                ],
+                "techniques": [
+                    "T1036"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5M",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

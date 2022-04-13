@@ -1,0 +1,84 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/3ab0d5ef-0fb7-488f-bbfe-869d67189b5a')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/3ab0d5ef-0fb7-488f-bbfe-869d67189b5a')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Suspicious Process Injection from Office application",
+                "description": "This query detects process injections using CreateRemoteThread, QueueUserAPC or SetThread context APIs, originating from an Office process (only Word/Excel/PowerPoint)\nthat might contains macros. Performing process injection from a macro is a common technique by attackers to escape out of the Office process into something\nlonger running.",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "DeviceEvents \n| where ActionType in (\"CreateRemoteThreadApiCall\", \"QueueUserApcRemoteApiCall\", \"SetThreadContextRemoteApiCall\")\n| where InitiatingProcessFileName in~ (\"winword.exe\", \"excel.exe\", \"powerpnt.exe\")\n| where InitiatingProcessCommandLine !contains \"/dde\"\n| where not(InitiatingProcessCommandLine has_any (\".docx\", \"dotx\",\".xlsx\", \".xltx\", \".pptx\")) // These files can't contain macros.\n// Enable the line below if the results are too noisy.\n//| where InitiatingProcessCommandLine has_any (\".doc\", \".wbk\", \".docm\", \".dot\", \".dotm\" \".xls\", \".xlsm\", \".xltm\", \".xla\",\".xll\", \".xlam\", \".ppt\", \".pptm\", \".pot\", \".potm\", \".ppsm\", \".sldm\") \n",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT1H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "DefenseEvasion"
+                ],
+                "techniques": [
+                    "T1055"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5M",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

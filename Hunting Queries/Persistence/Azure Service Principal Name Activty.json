@@ -1,0 +1,74 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/89725329-841a-4532-8ca6-90190e5e6ab4')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/89725329-841a-4532-8ca6-90190e5e6ab4')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Azure Service Principal Name Activty",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let spnOperations = dynamic([\"Add application\",\"Add owner to application\",\"Add service principal\",\"Update service principal\",\"Update application\",\"Update service principal\",\"Update application – Certificates and secrets management\",\"Update application\",\"Add app role assignment to service principal\",\"Add app role assignment grant to user\",\"Consent to application\"]);\nAuditLogs\n| where OperationName in (spnOperations)\n| extend spnName = tostring(TargetResources[0].displayName)\n| extend AppId = tostring(AdditionalDetails[1].value)",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Persistence"
+                ],
+                "techniques": [
+                    "T1098"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "CloudApplication",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "spnName"
+                            },
+                            {
+                                "identifier": "InstanceName",
+                                "columnName": "OperationName"
+                            },
+                            {
+                                "identifier": "AppId",
+                                "columnName": "AppId"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

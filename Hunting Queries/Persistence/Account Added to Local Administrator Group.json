@@ -19,8 +19,8 @@
                 "severity": "Medium",
                 "enabled": true,
                 "query": "// Account Added to Local Administrator Group\nDeviceEvents\n| where ActionType == \"UserAccountAddedToLocalGroup\"\n| extend GroupName = tostring(AdditionalFields.GroupName)\n| where GroupName == \"Administrators\"\n| join DeviceProcessEvents on AccountSid\n| where AccountName1 <> \"adsync\"",
-                "queryFrequency": "PT2H",
-                "queryPeriod": "PT3H",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
                 "triggerThreshold": 0,
                 "suppressionDuration": "PT5H",
@@ -46,7 +46,7 @@
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "AlertPerResult"
+                    "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
                 "customDetails": null,

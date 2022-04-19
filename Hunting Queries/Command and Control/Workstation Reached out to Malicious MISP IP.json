@@ -8,17 +8,17 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/10c5e664-73d2-4d72-b619-43182cb3a96f')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/10c5e664-73d2-4d72-b619-43182cb3a96f')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/d1a5fae0-646d-4b95-a2df-2e800572a447')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/d1a5fae0-646d-4b95-a2df-2e800572a447')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "WebNavigator or WaveBrowser Malware Detected",
+                "displayName": "Workstation Reached out to Malicious MISP IP",
                 "description": "",
                 "severity": "High",
                 "enabled": true,
-                "query": "// WebNavigator or WaveBrowser Malware Detected\nDeviceEvents\n| where InitiatingProcessFileName contains \"webnavigatorbrowser.exe\" or InitiatingProcessFileName contains \"wavebrowser.exe\"",
+                "query": "ThreatIntelligenceIndicator\n| where isnotempty(NetworkDestinationIP)\n| join kind=inner DeviceNetworkEvents on $left.NetworkDestinationIP==$right.RemoteIP\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -26,9 +26,11 @@
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "Execution"
+                    "CommandAndControl"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T0885"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,
@@ -43,7 +45,7 @@
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "AlertPerResult"
+                    "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
                 "customDetails": null,
@@ -62,7 +64,16 @@
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "InitiatingProcessAccountUpn"
+                                "columnName": "InitiatingProcessAccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
                             }
                         ]
                     },
@@ -72,15 +83,6 @@
                             {
                                 "identifier": "Name",
                                 "columnName": "InitiatingProcessFileName"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Process",
-                        "fieldMappings": [
-                            {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
                             }
                         ]
                     }

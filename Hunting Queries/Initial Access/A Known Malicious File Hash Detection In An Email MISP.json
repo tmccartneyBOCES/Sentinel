@@ -8,17 +8,17 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/10c5e664-73d2-4d72-b619-43182cb3a96f')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/10c5e664-73d2-4d72-b619-43182cb3a96f')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/2e4947fa-97bc-464a-a5d2-9b4cad6bb2a1')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/2e4947fa-97bc-464a-a5d2-9b4cad6bb2a1')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "WebNavigator or WaveBrowser Malware Detected",
+                "displayName": "A Known Malicious File Hash Detection In An Email MISP",
                 "description": "",
-                "severity": "High",
+                "severity": "Medium",
                 "enabled": true,
-                "query": "// WebNavigator or WaveBrowser Malware Detected\nDeviceEvents\n| where InitiatingProcessFileName contains \"webnavigatorbrowser.exe\" or InitiatingProcessFileName contains \"wavebrowser.exe\"",
+                "query": "ThreatIntelligenceIndicator\n| where FileHashType contains \"SHA256\"\n| distinct FileHashValue\n| join EmailAttachmentInfo on $left.FileHashValue==$right.SHA256\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -26,9 +26,11 @@
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "Execution"
+                    "InitialAccess"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1566"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,
@@ -43,26 +45,30 @@
                     }
                 },
                 "eventGroupingSettings": {
-                    "aggregationKind": "AlertPerResult"
+                    "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
                 "customDetails": null,
                 "entityMappings": [
                     {
-                        "entityType": "Host",
+                        "entityType": "Mailbox",
                         "fieldMappings": [
                             {
-                                "identifier": "HostName",
-                                "columnName": "DeviceName"
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "SenderFromAddress"
+                            },
+                            {
+                                "identifier": "DisplayName",
+                                "columnName": "SenderDisplayName"
                             }
                         ]
                     },
                     {
-                        "entityType": "Account",
+                        "entityType": "Mailbox",
                         "fieldMappings": [
                             {
-                                "identifier": "FullName",
-                                "columnName": "InitiatingProcessAccountUpn"
+                                "identifier": "MailboxPrimaryAddress",
+                                "columnName": "RecipientEmailAddress"
                             }
                         ]
                     },
@@ -71,16 +77,7 @@
                         "fieldMappings": [
                             {
                                 "identifier": "Name",
-                                "columnName": "InitiatingProcessFileName"
-                            }
-                        ]
-                    },
-                    {
-                        "entityType": "Process",
-                        "fieldMappings": [
-                            {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "columnName": "FileName"
                             }
                         ]
                     }

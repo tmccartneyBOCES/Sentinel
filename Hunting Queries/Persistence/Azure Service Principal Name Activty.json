@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "let spnOperations = dynamic([\"Add application\",\"Add owner to application\",\"Add service principal\",\"Update service principal\",\"Update application\",\"Update service principal\",\"Update application – Certificates and secrets management\",\"Update application\",\"Add app role assignment to service principal\",\"Add app role assignment grant to user\",\"Consent to application\"]);\nAuditLogs\n| where OperationName in (spnOperations)\n| extend spnName = tostring(TargetResources[0].displayName)\n| extend AppId = tostring(AdditionalDetails[1].value)",
+                "query": "let spnOperations = dynamic([\"Add application\", \"Add owner to application\", \"Add service principal\", \"Update service principal\", \"Update application\", \"Update service principal\", \"Update application – Certificates and secrets management\", \"Update application\", \"Add app role assignment to service principal\", \"Add app role assignment grant to user\", \"Consent to application\"]);\nAuditLogs\n| where OperationName in (spnOperations)\n| extend spnName = tostring(TargetResources[0].displayName)\n| extend AppId = tostring(AdditionalDetails[1].value)\n| extend userPrincipalName_ = tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)\n| extend ipAddress_ = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -48,22 +48,26 @@
                     "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "OperationName": "OperationName",
+                    "spnName": "spnName"
+                },
                 "entityMappings": [
                     {
-                        "entityType": "CloudApplication",
+                        "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "Name",
-                                "columnName": "spnName"
-                            },
+                                "identifier": "FullName",
+                                "columnName": "userPrincipalName_"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
                             {
-                                "identifier": "InstanceName",
-                                "columnName": "OperationName"
-                            },
-                            {
-                                "identifier": "AppId",
-                                "columnName": "AppId"
+                                "identifier": "Address",
+                                "columnName": "ipAddress_"
                             }
                         ]
                     }

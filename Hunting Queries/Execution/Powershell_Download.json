@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "High",
                 "enabled": true,
-                "query": "// Powershell Download\nDeviceProcessEvents\n| where FileName in~ (\"powershell.exe\",\"powershell_ise.exe\",\"pwsh.exe\")\n| where InitiatingProcessCommandLine has \"Net.WebClient\"\n or InitiatingProcessCommandLine has \"DownloadFile\"\n or InitiatingProcessCommandLine has \"Invoke-WebRequest\"\n or InitiatingProcessCommandLine has \"Invoke-Shellcode\"\n or InitiatingProcessCommandLine contains \"http:\"\n or InitiatingProcessCommandLine contains \"iex\"\n| where InitiatingProcessParentFileName <> \"SenseIR.exe\"\n\n",
+                "query": "// Powershell Download\nDeviceProcessEvents\n| where FileName in~ (\"powershell.exe\",\"powershell_ise.exe\",\"pwsh.exe\")\n| where InitiatingProcessCommandLine has \"Net.WebClient\"\n or InitiatingProcessCommandLine has \"DownloadFile\"\n or InitiatingProcessCommandLine has \"Invoke-WebRequest\"\n or InitiatingProcessCommandLine has \"Invoke-Shellcode\"\n or InitiatingProcessCommandLine contains \"http:\"\n or InitiatingProcessCommandLine contains \"iex\"\n| where InitiatingProcessParentFileName <> \"SenseIR.exe\"\n| where InitiatingProcessFileName <> \"CompactTelRunner.exe\" // Windows Compatibility Telemetry\n\n",
                 "queryFrequency": "PT3H",
                 "queryPeriod": "PT4H30M",
                 "triggerOperator": "GreaterThan",
@@ -79,6 +79,15 @@
                             {
                                 "identifier": "CommandLine",
                                 "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
                             }
                         ]
                     }

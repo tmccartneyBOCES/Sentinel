@@ -80,6 +80,15 @@
                                 "columnName": "InitiatingProcessAccountUpn"
                             }
                         ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "SearchFilter"
+                            }
+                        ]
                     }
                 ]
             }

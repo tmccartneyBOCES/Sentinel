@@ -49,7 +49,7 @@
                 },
                 "alertDetailsOverride": null,
                 "customDetails": {
-                    "Time": "TimeGenerated"
+                    "InitProcParFileName": "InitiatingProcessParentFileName"
                 },
                 "entityMappings": [
                     {
@@ -87,8 +87,18 @@
                                 "columnName": "ProcessCommandLine"
                             }
                         ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFileName"
+                            }
+                        ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

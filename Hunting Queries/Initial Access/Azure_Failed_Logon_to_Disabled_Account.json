@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// Azure Failed Logon to Disabled Account\r\nSigninLogs\r\n| where AuthenticationDetails contains '\"succeeded\":false' and ResultDescription contains \"disabled\"",
+                "query": "// Azure Failed Logon to Disabled Account\r\nSigninLogs\r\n| where AuthenticationDetails contains '\"succeeded\":false' and ResultDescription contains \"disabled\"\r\n| where AlternateSignInName <> \"aaledort@pobschools.org\"",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -70,7 +70,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

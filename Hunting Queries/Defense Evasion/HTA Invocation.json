@@ -89,10 +89,10 @@
                         ]
                     },
                     {
-                        "entityType": "Process",
+                        "entityType": "File",
                         "fieldMappings": [
                             {
-                                "identifier": "CommandLine",
+                                "identifier": "Name",
                                 "columnName": "InitiatingProcessFileName"
                             }
                         ]

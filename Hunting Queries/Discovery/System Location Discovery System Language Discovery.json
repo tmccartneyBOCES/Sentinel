@@ -18,7 +18,7 @@
                 "description": "Malware will attempt to determine the location but checking the keyboard code\nhttps://docs.microsoft.com/en-us/windows-server/administration/windows-commands/chcp",
                 "severity": "Low",
                 "enabled": true,
-                "query": "DeviceProcessEvents\n| where InitiatingProcessCommandLine contains \"chcp\" or ProcessCommandLine contains \"chcp\"\n",
+                "query": "DeviceProcessEvents\n| where InitiatingProcessCommandLine contains \"chcp\" or ProcessCommandLine contains \"chcp\"\n| where InitiatingProcessFileName <> \"SenseIR.exe\"\n| where InitiatingProcessCommandLine !contains \"Windows Defender Advanced Threat Protection\"\n| where InitiatingProcessParentFileName <> \"PanGpHip.exe\" and InitiatingProcessFileName == \"cmd.exe\" // PA VPN Agent\n| where InitiatingProcessParentFileName <> \"SurSvc.exe\" and InitiatingProcessCommandLine <> \"\\\"cmd.exe\\\" /C installer.bat X T > log_start.txt 2>&1\" // Intel Driver Update Check\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",

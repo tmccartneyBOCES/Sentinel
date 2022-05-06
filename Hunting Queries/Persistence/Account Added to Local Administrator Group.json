@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// Account Added to Local Administrator Group\nDeviceEvents\n| where ActionType == \"UserAccountAddedToLocalGroup\"\n| extend GroupName = tostring(AdditionalFields.GroupName)\n| where GroupName == \"Administrators\"\n| join DeviceProcessEvents on AccountSid\n| where AccountName1 <> \"adsync\"\n| where AccountName1 !startswith \"lenovo_tmp\"",
+                "query": "// Account Added to Local Administrator Group\nDeviceEvents\n| where ActionType == \"UserAccountAddedToLocalGroup\"\n| extend GroupName = tostring(AdditionalFields.GroupName)\n| where GroupName == \"Administrators\"\n| join DeviceProcessEvents on AccountSid\n| where AccountName1 <> \"adsync\"\n// All Lenovo Driver Updates\n| where AccountName1 !startswith \"lenovo_tmp\"\n| where InitiatingProcessFolderPath1 <> \"c:\\\\program files (x86)\\\\lenovo\\\\system update\\\\uacsdk.exe\" and FileName1 <> \"Tvsukernel.exe\"\n| where InitiatingProcessFolderPath1 <> \"c:\\\\program files (x86)\\\\lenovo\\\\system update\\\\tvsukernel.exe\" and FolderPath1 <> \"C:\\\\Program Files (x86)\\\\Lenovo\\\\System Update\\\\susetsched.exe\"\n| where InitiatingProcessFolderPath1 <> \"c:\\\\program files (x86)\\\\lenovo\\\\system update\\\\susetsched.exe\" and FolderPath1 <> \"C:\\\\Program Files (x86)\\\\Lenovo\\\\System Update\\\\ConfigScheduledTask.exe\"",
                 "queryFrequency": "PT2H",
                 "queryPeriod": "PT3H",
                 "triggerOperator": "GreaterThan",
@@ -68,7 +68,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

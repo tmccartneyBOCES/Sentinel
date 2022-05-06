@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// New Scheduled Task Created\nDeviceProcessEvents\n| where ProcessCommandLine contains \"schtasks /create\"\n",
+                "query": "// New Scheduled Task Created\nDeviceProcessEvents\n| where ProcessCommandLine contains \"schtasks /create\"\n| where InitiatingProcessFileName <> \"InstallManagerApp.exe\" and InitiatingProcessFolderPath <> \"c:\\\\program files\\\\amd\\\\cim\\\\bin64\\\\installmanagerapp.exe\" //AMD Driver Installer\n",
                 "queryFrequency": "PT3H",
                 "queryPeriod": "PT4H30M",
                 "triggerOperator": "GreaterThan",
@@ -77,7 +77,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

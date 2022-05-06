@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "DeviceProcessEvents\n| where FileName == \"powershell.exe\"\n| where ProcessCommandLine contains \"-encodedcommand\"\n",
+                "query": "DeviceProcessEvents\n| where FileName == \"powershell.exe\"\n| where ProcessCommandLine contains \"-encodedcommand\"\n| where InitiatingProcessFileName <> \"gc_worker.exe\" and InitiatingProcessParentFileName <> \"gc_service.exe\" // DSC Worker",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -95,7 +95,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

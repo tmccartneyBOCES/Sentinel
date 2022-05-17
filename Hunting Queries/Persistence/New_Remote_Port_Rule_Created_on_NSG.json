@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// New Remote Port Rule Created on NSG\nAzureActivity\n| where CallerIpAddress <> \"170.24.103.122\"\n| where OperationName == \"Create or Update Security Rule\"\n| where parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationPortRange == 3389 or parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationPortRange == 22\n| extend serverscope_ = tostring(parse_json(Authorization).scope)\n| extend nsgrulename_  = Resource\n| project Caller,nsgrulename_,CallerIpAddress,ResourceGroup,OperationName,serverscope_\n\n",
+                "query": "// New Remote Port Rule Created on NSG\nAzureActivity\n| where CallerIpAddress <> \"170.24.103.122\"\n| where OperationName == \"Create or Update Security Rule\"\n| where parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationPortRange == 3389 or parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationPortRange == 22\n| extend serverscope_ = tostring(parse_json(Authorization).scope)\n| extend nsgrulename_  = Resource\n| extend destinationPortRange_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationPortRange)\n| extend sourceAddressPrefix_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).sourceAddressPrefix)\n| extend direction_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).direction)\n| extend destinationAddressPrefix_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).destinationAddressPrefix)\n| extend sourcePortRanges_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).requestbody)).properties)).sourcePortRanges)\n| project Caller,nsgrulename_,CallerIpAddress,ResourceGroup,OperationName,serverscope_,sourceAddressPrefix_,sourcePortRanges_,destinationAddressPrefix_,destinationPortRange_,direction_",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -53,7 +53,12 @@
                 "customDetails": {
                     "RuleName": "nsgrulename_",
                     "ResourceGroup": "ResourceGroup",
-                    "ServerScope": "serverscope_"
+                    "ServerScope": "serverscope_",
+                    "sourceAddressPrefix": "sourceAddressPrefix_",
+                    "sourcePortRanges": "sourcePortRanges_",
+                    "destinationAddress": "destinationAddressPrefix_",
+                    "destinationPortRange": "destinationPortRange_",
+                    "direction": "direction_"
                 },
                 "entityMappings": [
                     {
@@ -74,7 +79,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

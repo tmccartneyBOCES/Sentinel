@@ -8,17 +8,17 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/7a63c9f0-db29-4e5d-b8a5-a90b1634c2c5')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/7a63c9f0-db29-4e5d-b8a5-a90b1634c2c5')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/20942899-e7b8-4c00-a32e-a496a9300619')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/20942899-e7b8-4c00-a32e-a496a9300619')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "An Encoded Powershell Command Detected",
-                "description": "",
-                "severity": "Medium",
+                "displayName": "System Location Discovery: System Language Discovery",
+                "description": "Malware will attempt to determine the location but checking the keyboard code\nhttps://docs.microsoft.com/en-us/windows-server/administration/windows-commands/chcp",
+                "severity": "Low",
                 "enabled": true,
-                "query": "DeviceProcessEvents\n| where FileName == \"powershell.exe\"\n| where ProcessCommandLine contains \"-encodedcommand\"\n| where InitiatingProcessFileName <> \"gc_worker.exe\" and InitiatingProcessParentFileName <> \"gc_service.exe\" // DSC Worker",
+                "query": "DeviceProcessEvents\n| where InitiatingProcessCommandLine contains \"chcp\" or ProcessCommandLine contains \"chcp\"\n| where InitiatingProcessFileName <> \"SenseIR.exe\"\n| where InitiatingProcessCommandLine !contains \"Windows Defender Advanced Threat Protection\"\n| where InitiatingProcessParentFileName <> \"PanGpHip.exe\" and InitiatingProcessFileName == \"cmd.exe\" // PA VPN Agent\n| where InitiatingProcessParentFileName <> \"SurSvc.exe\" and InitiatingProcessCommandLine <> \"\\\"cmd.exe\\\" /C installer.bat X T > log_start.txt 2>&1\" // Intel Driver Update Check\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -26,10 +26,10 @@
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "Execution"
+                    "Discovery"
                 ],
                 "techniques": [
-                    "T1059"
+                    "T1082"
                 ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
@@ -51,15 +51,6 @@
                 "customDetails": null,
                 "entityMappings": [
                     {
-                        "entityType": "Account",
-                        "fieldMappings": [
-                            {
-                                "identifier": "FullName",
-                                "columnName": "AccountUpn"
-                            }
-                        ]
-                    },
-                    {
                         "entityType": "Process",
                         "fieldMappings": [
                             {
@@ -69,11 +60,11 @@
                         ]
                     },
                     {
-                        "entityType": "File",
+                        "entityType": "Process",
                         "fieldMappings": [
                             {
-                                "identifier": "Name",
-                                "columnName": "InitiatingProcessFolderPath"
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
                             }
                         ]
                     },
@@ -87,11 +78,11 @@
                         ]
                     },
                     {
-                        "entityType": "Process",
+                        "entityType": "Account",
                         "fieldMappings": [
                             {
-                                "identifier": "CommandLine",
-                                "columnName": "ProcessCommandLine"
+                                "identifier": "FullName",
+                                "columnName": "InitiatingProcessAccountUpn"
                             }
                         ]
                     }

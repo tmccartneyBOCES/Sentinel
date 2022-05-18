@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "DeviceProcessEvents\n| where FileName == \"powershell.exe\"\n| where ProcessCommandLine contains \"-encodedcommand\"\n| where InitiatingProcessFileName <> \"gc_worker.exe\" and InitiatingProcessParentFileName <> \"gc_service.exe\" // DSC Worker",
+                "query": "//Finds encoded PowerShell commands and then decodes the encoded string\n//Query modified from this post - https://techcommunity.microsoft.com/t5/microsoft-sentinel/finding-base64-encoded-commands/m-p/1891876\nDeviceProcessEvents\n| where ProcessCommandLine contains \"powershell\" or InitiatingProcessCommandLine contains \"powershell\"\n| where ProcessCommandLine contains \"-enc\"\n    or ProcessCommandLine contains \"-encodedcommand\"\n    or InitiatingProcessCommandLine contains \"-enc\"\n    or InitiatingProcessCommandLine contains \"-encodedcommand\"\n//Extract encoded command using regex\n//This query will only return results when the command can be matched via regex and decoded, if you run only the above lines it will return all encoded commands without attempting to match and decode\n| extend EncodedCommand = extract(@'\\s+([A-Za-z0-9+/]{20}\\S+$)', 1, ProcessCommandLine)\n| where EncodedCommand != \"\"\n| extend DecodedCommand = base64_decode_tostring(EncodedCommand)\n| where DecodedCommand != \"\"\n| where InitiatingProcessFileName <> \"gc_worker.exe\" and InitiatingProcessParentFileName <> \"gc_service.exe\" // DSC Worker\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -48,14 +48,17 @@
                     "aggregationKind": "SingleAlert"
                 },
                 "alertDetailsOverride": null,
-                "customDetails": null,
+                "customDetails": {
+                    "EncodedCommand": "EncodedCommand",
+                    "DecodedCommand": "DecodedCommand"
+                },
                 "entityMappings": [
                     {
                         "entityType": "Account",
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "AccountUpn"
+                                "columnName": "InitiatingProcessAccountName"
                             }
                         ]
                     },
@@ -73,7 +76,7 @@
                         "fieldMappings": [
                             {
                                 "identifier": "Name",
-                                "columnName": "InitiatingProcessFolderPath"
+                                "columnName": "InitiatingProcessFileName"
                             }
                         ]
                     },

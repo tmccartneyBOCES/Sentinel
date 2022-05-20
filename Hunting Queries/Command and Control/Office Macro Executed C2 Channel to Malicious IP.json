@@ -1,0 +1,103 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/68137af5-111b-4c4a-a87d-8d445a07d7f0')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/68137af5-111b-4c4a-a87d-8d445a07d7f0')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-10-01-preview",
+            "properties": {
+                "displayName": "Office Macro Executed C2 Channel to Malicious IP",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let knownMicrosoftBlocks = external_data (prefix: string, type:string) ['https://raw.githubusercontent.com/Nassau-BOCES/Sentinel/main/geodata/msft-public-ips.csv'];\nDeviceNetworkEvents\n| where InitiatingProcessFileName contains \"excel.exe\" or InitiatingProcessFileName contains \"word.exe\"\n//| where InitiatingProcessCommandLine contains \".xlsm\" or InitiatingProcessCommandLine contains \".xltm\" \n| where RemoteIPType == \"Public\"\n//Exclude Microsoft telemetry endpoints \n| where RemoteUrl !endswith \"outlook.com\" \n    and RemoteUrl !endswith \"office.com\"\n    and RemoteUrl !endswith \"microsoft.com\"\n    and RemoteUrl !endswith \"office365.com\"\n    and RemoteUrl !endswith \"live.com\"\n    and RemoteUrl !endswith \"office.net\"\n    and RemoteUrl !endswith \"nbw.tld\"\n    and RemoteUrl !startswith \"nboces\"\n    and RemoteUrl <> \"nasboces.org\"\n| evaluate ipv4_lookup(knownMicrosoftBlocks, RemoteIP, prefix, return_unmatched=false)\n| where type <> \" MSFT Public IP Address Block\" // Exclude Microsoft Blocks\n\n",
+                "queryFrequency": "PT5H",
+                "queryPeriod": "PT5H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "CommandAndControl"
+                ],
+                "techniques": [
+                    "T0885"
+                ],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "InitiatingProcessAccountName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Host",
+                        "fieldMappings": [
+                            {
+                                "identifier": "HostName",
+                                "columnName": "DeviceName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "RemoteIP"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "URL",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Url",
+                                "columnName": "RemoteUrl"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFileName"
+                            }
+                        ]
+                    }
+                ],
+                "sentinelEntitiesMappings": null
+            }
+        }
+    ]
+}

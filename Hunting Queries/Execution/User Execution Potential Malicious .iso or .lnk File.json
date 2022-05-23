@@ -14,11 +14,11 @@
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "User Execution: Potential Malicious File",
+                "displayName": "User Execution: Potential Malicious .iso or .lnk File",
                 "description": "New variants of malware are attempting to trick users to run .ISO and .LNK files.",
                 "severity": "High",
                 "enabled": true,
-                "query": "DeviceFileEvents\n| where InitiatingProcessAccountName <> \"system\"\n| where InitiatingProcessFileName <> \"SenseIR.exe\"\n| where  ActionType == \"FileCreated\"\n| where FolderPath contains \"downloads\"\n| where FileName endswith \".lnk\" or  FileName endswith \".iso\"\n| where FileName !startswith \"Downloads\"\n",
+                "query": "DeviceFileEvents\n| where InitiatingProcessAccountName <> \"system\"\n| where InitiatingProcessFileName <> \"SenseIR.exe\"\n| where ActionType == \"FileCreated\"\n| where FolderPath contains \"downloads\"\n| where FileName !endswith \"docx.lnk\" // exclude doc links that's not what we are looking for\n| where FileName endswith \".lnk\" or FileName endswith \".iso\"\n| where FileName !startswith \"Downloads\"",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",

@@ -8,17 +8,17 @@
     },
     "resources": [
         {
-            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/f781bd9a-2d60-45eb-ae3a-a92b026986bf')]",
-            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/f781bd9a-2d60-45eb-ae3a-a92b026986bf')]",
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/4a45db00-701f-4fbb-a399-7a8db3dc814f')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/4a45db00-701f-4fbb-a399-7a8db3dc814f')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
             "kind": "Scheduled",
             "apiVersion": "2021-10-01-preview",
             "properties": {
-                "displayName": "User Execution: Potential Malicious .iso or .lnk File",
-                "description": "New variants of malware are attempting to trick users to run .ISO and .LNK files.",
+                "displayName": "Follina Zero Day Process Detected ",
+                "description": "",
                 "severity": "High",
                 "enabled": true,
-                "query": "DeviceFileEvents\n| where InitiatingProcessAccountName <> \"system\"\n| where InitiatingProcessFileName <> \"SenseIR.exe\"\n| where ActionType == \"FileCreated\"\n| where FolderPath contains \"downloads\"\n| where FileName !endswith \"docx.lnk\" // exclude doc links that's not what we are looking for\n| where FileName endswith \".lnk\" or FileName endswith \".iso\"\n| where FileName !startswith \"Downloads\"",
+                "query": "DeviceProcessEvents\n| where ProcessCommandLine contains \"msdt.exe\"\n| where InitiatingProcessFileName has_any (@\"WINWORD.EXE\", @\"EXCEL.EXE\", @\"OUTLOOK.EXE\")\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -55,7 +55,7 @@
                         "fieldMappings": [
                             {
                                 "identifier": "FullName",
-                                "columnName": "InitiatingProcessAccountName"
+                                "columnName": "InitiatingProcessAccountUpn"
                             }
                         ]
                     },
@@ -69,11 +69,20 @@
                         ]
                     },
                     {
-                        "entityType": "File",
+                        "entityType": "Process",
                         "fieldMappings": [
                             {
-                                "identifier": "Name",
-                                "columnName": "FolderPath"
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
                             }
                         ]
                     }

@@ -1,2 +1,4 @@
-this works perfectly fine with the decoding and encoding junk. It does overwrite the previous information, but isn't that intentional? 
- We're using the database to get uniques so it makes sense that it clears. If it was getting nothing, it means that it wasn't taking anything from the database, for some reason.
+This works perfectly fine with the decoding and encoding junk, .encode('utf-8') and whatever. 
+It does overwrite the previous information, but isn't that intentional? 
+We're using the database to get uniques so it makes sense that it clears. 
+If it was getting nothing, it means that it wasn't taking anything from the database, for some reason.

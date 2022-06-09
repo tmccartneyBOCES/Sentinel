@@ -18,7 +18,7 @@
                 "description": "",
                 "severity": "Medium",
                 "enabled": true,
-                "query": "// Suspicious User or Computer LDAP Query\nDeviceEvents\n| where ActionType == \"LdapSearch\"\n| extend LDAP = parse_json(AdditionalFields)\n| extend SearchFilter = LDAP.SearchFilter\n| where SearchFilter has \"samAccountType=805306368\" // LDAP filter to discover all the user accounts\n    or SearchFilter has \"samAccountType=805306369\" // LDAP filter to discover all the machine accounts\n",
+                "query": "// Suspicious User or Computer LDAP Query\nDeviceEvents\n| where ActionType == \"LdapSearch\"\n| extend LDAP = parse_json(AdditionalFields)\n| extend SearchFilter = LDAP.SearchFilter\n| where SearchFilter has \"samAccountType=805306368\" // LDAP filter to discover all the user accounts\n    or SearchFilter has \"samAccountType=805306369\" // LDAP filter to discover all the machine accounts\n| where InitiatingProcessFileName <> \"dotnet.exe\" and DeviceName <> \"pobs-onesync.pobs.tld\" // One SYNC Needs to do LDAP Queries\n| where DeviceName <> \"pobs-papercut.pobs.tld\" and InitiatingProcessFileName <> \"userdirad.exe\" // Papercut Needs to do LDAP Queries\n| where DeviceName <> \"pobs-classlink.pobs.tld\" and InitiatingProcessCommandLine <> \"ActiveDirectoryExtractor.exe\" // classlink Needs to do LDAP Queries\n",
                 "queryFrequency": "PT1H",
                 "queryPeriod": "PT1H30M",
                 "triggerOperator": "GreaterThan",
@@ -90,7 +90,8 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

@@ -76,8 +76,18 @@
                                 "columnName": "DeviceName"
                             }
                         ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFolderPath"
+                            }
+                        ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]

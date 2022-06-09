@@ -26,9 +26,11 @@
                 "suppressionDuration": "PT5H",
                 "suppressionEnabled": false,
                 "tactics": [
-                    "Execution"
+                    "DefenseEvasion"
                 ],
-                "techniques": [],
+                "techniques": [
+                    "T1218"
+                ],
                 "alertRuleTemplateName": null,
                 "incidentConfiguration": {
                     "createIncident": true,
@@ -47,7 +49,7 @@
                 },
                 "alertDetailsOverride": null,
                 "customDetails": {
-                    "Time": "TimeGenerated"
+                    "InitProcParFileName": "InitiatingProcessParentFileName"
                 },
                 "entityMappings": [
                     {
@@ -67,8 +69,36 @@
                                 "columnName": "AccountUpn"
                             }
                         ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "InitiatingProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "Process",
+                        "fieldMappings": [
+                            {
+                                "identifier": "CommandLine",
+                                "columnName": "ProcessCommandLine"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "File",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "InitiatingProcessFolderPath"
+                            }
+                        ]
                     }
-                ]
+                ],
+                "sentinelEntitiesMappings": null
             }
         }
     ]
